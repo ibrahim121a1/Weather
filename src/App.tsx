@@ -1,7 +1,9 @@
-import React from 'react';
+import React,{useState} from 'react';
 import './App.css';
 import { useForm } from 'react-hook-form';
 import { error } from 'console';
+import InputComponent from './components/InputComponent';
+import OutputComponent from './components/OutputComponent';
 
 function App() {
   
@@ -10,12 +12,12 @@ function App() {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const [temperature,SetTemperature] = React.useState<String>();
-  const [minTemp,SetMinTemp] = React.useState<String>();
-  const [maxTemp,SetMaxTemp] = React.useState<String>();
-  const [humidity,SetHumidity] = React.useState<String>();
-  const [responseGet,SetresponseGet] = React.useState<Boolean>(false);
-  const getCoordinates= async (location:String)=>{
+  const [temperature,setTemperature] = useState<string>('');
+  const [minTemp,setminTemp] = useState<string>('');
+  const [maxTemp,setmaxTemp] = useState<string>('');
+  const [humidity,setHumidity] = useState<string>('');
+  const [responseGet,SetresponseGet] = useState<boolean>(false);
+  const getCoordinates= async (location:string)=>{
     fetch(`https://nominatim.openstreetmap.org/search?q=${location}&format=json&limit=1`)
     .then((res)=>{
       const response = res.json()
@@ -32,16 +34,16 @@ function App() {
       
     })
   }
-  const getWeather=(lat:String,lon:String)=>{
+  const getWeather=(lat:string,lon:string)=>{
     fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=ca634b148bb14136e1aae3df6937ee78&units=metric`)
     .then((res)=>{
       const response = res.json()
       response.then((resp)=>{
         console.log("coordinates",resp.main);
-        SetTemperature(resp.main.temp);
-        SetMaxTemp(resp?.main?.temp_max);
-        SetMinTemp(resp?.main?.temp_min);
-        SetHumidity(resp?.main?.humidity);
+        setTemperature(resp.main.temp);
+        setmaxTemp(resp?.main?.temp_max);
+        setminTemp(resp?.main?.temp_min);
+        setHumidity(resp?.main?.humidity);
         SetresponseGet(true);
       })
       
@@ -53,28 +55,13 @@ function App() {
   }
   return (
     <>
-    <h1 className=' my-5 mx-5'>Enter the place which you want to see the data</h1>
-    <form className=' mx-5' onSubmit={handleSubmit((data) => getCoordinates(data?.location))}>
-      <input className='border border-black' placeholder='Location' {...register('location')} />
-      <input className=' bg-black text-white p-1 ml-1'  type="submit" />
-    </form>
+    <InputComponent onResponse={(loc)=>{
+      getCoordinates(loc)
+    }}/>
     {
-      responseGet === true?(
+      responseGet?(
         <>
-        <div className=' flex'>
-      <h1 className=' text-black mx-5 my-5'>Current Temperature</h1>
-      <h1 className='mx-5 my-5'>{temperature}</h1>
-    </div>
-    <div className=' flex'>
-      <h1 className=' text-black mx-5 my-5'>Min Temperature</h1>
-      <h1 className='mx-5 my-5'>{minTemp}</h1>
-      <h1 className=' text-black mx-5 my-5'>Max Temperature</h1>
-      <h1 className='mx-5 my-5'>{maxTemp}</h1>
-    </div>
-    <div className=' flex'>
-      <h1 className=' text-black mx-5 my-5'>Humidity</h1>
-      <h1 className='mx-5 my-5'>{humidity}</h1>
-    </div>
+        <OutputComponent temperature={temperature} minTemp={minTemp?.toString()} maxTemp={maxTemp?.toString()} humidity={humidity?.toString()}/>
         </>
       ):null
     }
